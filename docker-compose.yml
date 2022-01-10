@@ -1,0 +1,40 @@
+version: '3.7'
+services:
+  mysql:
+   image: mysql:latest
+   command: --default-authentication-plugin=mysql_native_password
+   restart: always
+   environment:
+     MYSQL_ROOT_PASSWORD: example
+   ports:
+     - '3306:3306'
+  elasticsearch:
+    image: elasticsearch:7.9.2
+    ports:
+      - '9200:9200'
+    environment:
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+  kibana:
+    image: kibana:7.9.2
+    ports:
+      - '5601:5601'
+  logstash:
+    image: logstash:7.9.2
+    # command: bin/logstash-plugin install logstash-input-jdbc
+    ports:
+      - '5000:5000'
+    environment:
+      LS_OPTS: "--config.reload.automatic"
+    volumes:
+      - type: bind
+        source: ./mysql-connector-java-8.0.16/
+        target: /usr/share/logstash/mysql-connector-java-8.0.16
+        read_only: true
+      - type: bind
+        source: ./logstash_pipeline/
+        target: /usr/share/logstash/pipeline
+        read_only: true
